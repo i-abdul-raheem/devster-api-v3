@@ -1,4 +1,6 @@
-const limit = require("p-limit").default(5);
+const pLimit = require("p-limit");
+const limit = pLimit(5);
+
 const { parsePayoneerPDF } = require("../services/payoneer.service");
 const { generateSalarySlip } = require("../services/docgen.service");
 const { sendSlackNotification } = require("../services/slack.service");
