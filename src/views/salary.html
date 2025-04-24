@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Salary Slip Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .dropzone {
+      transition: background-color 0.3s ease;
+    }
+    .dropzone.dragover {
+      background-color: #f3f4f6;
+      border-color: #60a5fa;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded shadow-md w-full max-w-lg">
+    <h1 class="text-2xl font-bold mb-4 text-center text-blue-600">Salary Slip Generator</h1>
+    
+    <form id="uploadForm" class="space-y-4" enctype="multipart/form-data">
+      <div 
+        id="dropzone" 
+        class="dropzone border-2 border-dashed border-gray-300 p-6 text-center text-gray-500 cursor-pointer rounded"
+      >
+        <p>Drag and drop your Payoneer receipt PDFs here</p>
+        <p class="text-sm text-gray-400 mt-2">or click to select</p>
+        <input 
+          id="fileInput" 
+          type="file" 
+          name="files" 
+          multiple 
+          accept="application/pdf" 
+          class="hidden" 
+        />
+      </div>
+
+      <button 
+        type="submit" 
+        class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+      >
+        Upload & Generate
+      </button>
+    </form>
+
+    <div id="status" class="mt-4 text-sm text-gray-700"></div>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("fileInput");
+    const form = document.getElementById("uploadForm");
+    const status = document.getElementById("status");
+
+    let selectedFiles = [];
+
+    // Click to open file selector
+    dropzone.addEventListener("click", () => fileInput.click());
+
+    // File selector change
+    fileInput.addEventListener("change", (e) => {
+      selectedFiles = Array.from(e.target.files);
+      dropzone.innerHTML = `<p>${selectedFiles.length} file(s) selected.</p>`;
+    });
+
+    // Drag & Drop
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("dragover");
+    });
+
+    dropzone.addEventListener("dragleave", () => {
+      dropzone.classList.remove("dragover");
+    });
+
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      selectedFiles = Array.from(e.dataTransfer.files);
+      dropzone.innerHTML = `<p>${selectedFiles.length} file(s) dropped.</p>`;
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (!selectedFiles.length) {
+        status.textContent = "❗ Please select at least one PDF file.";
+        return;
+      }
+
+      const formData = new FormData();
+      selectedFiles.forEach((file) => formData.append("files", file));
+
+      status.textContent = "Uploading... ⏳";
+
+      try {
+        const response = await fetch("api/salary-slips", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          const links = result.map((r, i) => `<li><a href="${r.pdfUrl}" class="text-blue-600 underline" target="_blank">${r.email}</a></li>`).join("") || "";
+          status.innerHTML = `<p class="text-green-600">✅ Slips generated:</p><ul class="list-disc list-inside">${links}</ul>`;
+        } else {
+          status.innerHTML = `<p class="text-red-600">❌ Failed: ${result.error || 'Unknown error'}</p>`;
+        }
+      } catch (err) {
+        status.innerHTML = `<p class="text-red-600">❌ Network error.</p>`;
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>

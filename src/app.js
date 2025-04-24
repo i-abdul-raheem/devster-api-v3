@@ -13,6 +13,17 @@ app.use("/api/salary-slips", salarySlipsAPI);
 app.get("/", (req, res) => {
   res.send("Welcome to the Devster API V3!");
 });
+app.get("/salary-slips", (req, res) => {
+  res.status(200).sendFile(
+    path.join(__dirname, "./views/salary.html"),
+    (err) => {
+      if (err) {
+        console.error("Error sending file:", err);
+        res.status(err.status).end();
+      }
+    }
+  );
+});
 
 if (process.env.NODE_ENV === "local") {
   app.listen(port, () => {
