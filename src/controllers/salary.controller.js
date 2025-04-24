@@ -19,11 +19,28 @@ exports.handleSalaryUpload = async (req, res) => {
       limit(async () => {
         try {
           const receipt = await parsePayoneerPDF(file.data);
-          console.log("Receipt Data:", receipt);
-          const employee = getEmployeeByEmail(receipt.email);
-          console.log("Employee Data:", employee);
-          const slipInput = { ...employee, ...receipt };
-          // console.log("Slip Input:", slipInput);
+          const employee = await getEmployeeByEmail(receipt.email);
+
+          // Merge both
+          const slipInput = {
+            ...employee,
+            ...receipt,
+            salary: receipt.amountSent.split(" ")[0],
+            currency: receipt.amountSent.split(" ")[1] || "",
+            issuanceDate: new Date(
+              Date.parse(receipt.dateTime.replace(" UTC", ""))
+            )
+              .toISOString()
+              .split("T")[0],
+            salaryMonth: new Date(
+              Date.parse(receipt.dateTime.replace(" UTC", ""))
+            ).toLocaleString("en-US", { month: "long" }),
+            salaryYear: new Date(
+              Date.parse(receipt.dateTime.replace(" UTC", ""))
+            )
+              .getFullYear()
+              .toString(),
+          };
           const pdfUrl = await generateSalarySlip(slipInput);
           await sendSlackNotification(
             employee.slackUserId,

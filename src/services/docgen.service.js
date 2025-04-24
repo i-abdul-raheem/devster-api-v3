@@ -15,6 +15,9 @@ const auth = new google.auth.GoogleAuth({
 const TEMPLATE_ID = process.env.SALARY_DOCX_TEMPLATE_ID;
 
 async function generateSalarySlip(data) {
+  if(data.links){
+    delete data.links;
+  }
   const client = await auth.getClient();
   const docs = google.docs({ version: "v1", auth: client });
   const drive = google.drive({ version: "v3", auth: client });

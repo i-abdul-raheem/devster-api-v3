@@ -5,19 +5,27 @@ const path = require("node:path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 const app = express();
 const port = process.env.PORT || 3000;
-
-const salarySlipsAPI = require("./api/salarySlips");
-const filesRoute = require("./api/files");
 const db = require("./config/db");
 
 app.use(cors());
 app.use(fileUpload());
 app.use(express.json());
-app.use("/api/files", filesRoute);
-app.use("/api/salary-slips", salarySlipsAPI);
+app.use("/api/files", require("./api/files"));
+app.use("/api/salary-slips", require("./api/salarySlips"));
+app.use("/api/employees", require("./api/employee"));
 
 app.get("/", (req, res) => {
   res.send("Welcome to the Devster API V3!");
+});
+app.get("/employee-manager", (req, res) => {
+  res
+    .status(200)
+    .sendFile(path.join(__dirname, "./views/employee-manager.html"), (err) => {
+      if (err) {
+        console.error("Error sending file:", err);
+        res.status(err.status).end();
+      }
+    });
 });
 app.get("/files-manager", (req, res) => {
   res
