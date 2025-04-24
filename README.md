@@ -1,0 +1,1 @@
+Modular Node.js structure for payroll & HR automation.
