@@ -12,11 +12,22 @@ const db = require("./config/db");
 
 app.use(cors());
 app.use(fileUpload());
+app.use(express.json());
 app.use("/api/files", filesRoute);
 app.use("/api/salary-slips", salarySlipsAPI);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the Devster API V3!");
+});
+app.get("/files-manager", (req, res) => {
+  res
+    .status(200)
+    .sendFile(path.join(__dirname, "./views/files-manager.html"), (err) => {
+      if (err) {
+        console.error("Error sending file:", err);
+        res.status(err.status).end();
+      }
+    });
 });
 app.get("/salary-slips", (req, res) => {
   res
