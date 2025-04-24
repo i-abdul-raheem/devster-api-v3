@@ -10,6 +10,10 @@ const salarySlipsAPI = require("./api/salarySlips");
 app.use(fileUpload());
 app.use("/api/salary-slips", salarySlipsAPI);
 
+app.get("/", (req, res) => {
+  res.send("Welcome to the Devster API V3!");
+});
+
 if (process.env.NODE_ENV === "local") {
   app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
