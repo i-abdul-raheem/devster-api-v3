@@ -15,26 +15,33 @@ async function sendSalarySlipSlack(
 
     const salaryMonth = date.toLocaleString("en-US", { month: "long" });
     const salaryYear = String(date.getFullYear());
-    // Step 1: Open a direct message channel with the user
-    const im = await slack.conversations.open({
-      users: slackUserId,
-    });
 
-    const dmChannelId = im.channel.id;
+    async function sendMsg(currSlackUserId) {
+      // Step 1: Open a direct message channel with the user
+      const im = await slack.conversations.open({
+        users: currSlackUserId,
+      });
 
-    // Step 2: Upload the receipt PDF
-    await slack.files.uploadV2({
-      channel_id: dmChannelId,
-      filename: pdfFilename,
-      title: "Payoneer Receipt",
-      file: pdfBuffer,
-    });
+      const dmChannelId = im.channel.id;
 
-    // Step 3: Send the message with the Docs link
-    await slack.chat.postMessage({
-      channel: dmChannelId,
-      text: `Salary for ${salaryMonth} ${salaryYear} has been credited.\n\nSalary Slip: ${docUrl}`,
-    });
+      // Step 2: Upload the receipt PDF
+      await slack.files.uploadV2({
+        channel_id: dmChannelId,
+        filename: pdfFilename,
+        title: "Payoneer Receipt",
+        file: pdfBuffer,
+      });
+
+      // Step 3: Send the message with the Docs link
+      await slack.chat.postMessage({
+        channel: dmChannelId,
+        text: `Salary for ${salaryMonth} ${salaryYear} has been credited.\n\nSalary Slip: ${docUrl}`,
+      });
+    }
+    for (const userId of [slackUserId, process.env.SLACK_ADMIN_USER_ID]) {
+      // Send the message to both the user and the admin
+      await sendMsg(userId);
+    }
   } catch (err) {
     console.error("❌ Slack error:", err);
   }
