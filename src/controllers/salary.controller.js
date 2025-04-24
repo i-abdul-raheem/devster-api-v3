@@ -19,8 +19,11 @@ exports.handleSalaryUpload = async (req, res) => {
       limit(async () => {
         try {
           const receipt = await parsePayoneerPDF(file.data);
+          console.log("Receipt Data:", receipt);
           const employee = getEmployeeByEmail(receipt.email);
+          console.log("Employee Data:", employee);
           const slipInput = { ...employee, ...receipt };
+          // console.log("Slip Input:", slipInput);
           const pdfUrl = await generateSalarySlip(slipInput);
           await sendSlackNotification(
             employee.slackUserId,

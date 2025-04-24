@@ -1,5 +1,28 @@
 const { employeeDetailsMap } = require("./employee.service");
-const pdf = require("pdf-parse")
+const pdf = require("pdf-parse");
+
+const transformForTemplate = (payoneerData) => {
+  const email = payoneerData.email;
+  const employeeData = employeeDetailsMap[email] || {};
+  const [salary] = payoneerData.amountSent.split(" ");
+  const currency = payoneerData.amountSent.split(" ")[1] || "";
+  const date = new Date(Date.parse(payoneerData.dateTime.replace(" UTC", "")));
+
+  const salaryMonth = date.toLocaleString("en-US", { month: "long" });
+  const salaryYear = String(date.getFullYear());
+  const issuanceDate = date.toISOString().split("T")[0];
+
+  return {
+    ...employeeData,
+    salaryMonth,
+    salaryYear,
+    salary,
+    currency,
+    issuanceDate,
+    email,
+    dateTime: payoneerData.dateTime,
+  };
+};
 
 const extractPayoneerDetails = async (buffer) => {
   const data = await pdf(buffer);
@@ -35,31 +58,9 @@ const extractPayoneerDetails = async (buffer) => {
   );
   if (descMatch) details.description = descMatch[1].trim();
 
-  return details;
-};
-
-const transformForTemplate = (payoneerData) => {
-  const email = payoneerData.email;
-  const employeeData = employeeDetailsMap[email] || {};
-  const [salary] = payoneerData.amountSent.split(" ");
-  const currency = payoneerData.amountSent.split(" ")[1] || "";
-  const date = new Date(Date.parse(payoneerData.dateTime.replace(" UTC", "")));
-
-  const salaryMonth = date.toLocaleString("en-US", { month: "long" });
-  const salaryYear = String(date.getFullYear());
-  const issuanceDate = date.toISOString().split("T")[0];
-
-  return {
-    ...employeeData,
-    salaryMonth,
-    salaryYear,
-    salary,
-    currency,
-    issuanceDate,
-  };
+  return transformForTemplate(details);
 };
 
 module.exports = {
   parsePayoneerPDF: extractPayoneerDetails,
-  transformForTemplate,
 };

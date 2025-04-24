@@ -26,4 +26,4 @@ const getEmployeeByEmail = (email) => {
   return employeeDetailsMap?.[email]
 }
 
-module.exports = { getEmployeeByEmail };
+module.exports = { getEmployeeByEmail, employeeDetailsMap };
