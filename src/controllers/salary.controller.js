@@ -27,19 +27,6 @@ exports.handleSalaryUpload = async (req, res) => {
             ...receipt,
             salary: receipt.amountSent.split(" ")[0],
             currency: receipt.amountSent.split(" ")[1] || "",
-            issuanceDate: new Date(
-              Date.parse(receipt.dateTime.replace(" UTC", ""))
-            )
-              .toISOString()
-              .split("T")[0],
-            salaryMonth: new Date(
-              Date.parse(receipt.dateTime.replace(" UTC", ""))
-            ).toLocaleString("en-US", { month: "long" }),
-            salaryYear: new Date(
-              Date.parse(receipt.dateTime.replace(" UTC", ""))
-            )
-              .getFullYear()
-              .toString(),
           };
           const pdfUrl = await generateSalarySlip(slipInput);
           await sendSlackNotification(

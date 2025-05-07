@@ -34,6 +34,14 @@ const extractPayoneerDetails = async (buffer) => {
     /Transaction description(.+?)Foradditionalassistance/i
   );
   if (descMatch) details.description = descMatch[1].trim();
+  // Extract salaryMonth and salaryYear from description
+  const dateMatches = details.description.match(
+    /^([A-Za-z]+)\s+(\d{4}),\s*Salary/i
+  );
+  if (dateMatches) {
+    details.salaryMonth = dateMatches[1];
+    details.salaryYear = dateMatches[2];
+  }
 
   // Fetch dynamic employee details from DB
   const employeeData = await getEmployeeByEmail(details.email);
@@ -41,14 +49,18 @@ const extractPayoneerDetails = async (buffer) => {
   const [salary] = details.amountSent.split(" ");
   const currency = details.amountSent.split(" ")[1] || "";
   const date = new Date(Date.parse(details.dateTime.replace(" UTC", "")));
-  const salaryMonth = date.toLocaleString("en-US", { month: "long" });
-  const salaryYear = String(date.getFullYear());
-  const issuanceDate = date.toISOString().split("T")[0];
+  // const salaryMonth = date.toLocaleString("en-US", { month: "long" });
+  // const salaryYear = String(date.getFullYear());
+  const issuanceDate = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
 
   return {
     ...employeeData,
-    salaryMonth,
-    salaryYear,
+    salaryMonth: details.salaryMonth,
+    salaryYear: details.salaryYear,
     salary,
     currency,
     issuanceDate,
